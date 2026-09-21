@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>LE_cat</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">LE_cat</h1>
+</header>
+<p><br><br> <img src="A2_M.jpg" /> <br><br> <img src="A2_K.jpg" /></p>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Создаем один общий темный фон для всех картинок
+    const overlay = document.createElement('div');
+    overlay.className = 'img-overlay';
+    const viewImg = document.createElement('img');
+    overlay.appendChild(viewImg);
+    document.body.appendChild(overlay);
+
+    let scale = 1;
+    let pointX = 0, pointY = 0, startX = 0, startY = 0, isDragging = false;
+
+    // Функция обновления трансформации картинки
+    function updateTransform() {
+        viewImg.style.transform = `translate(calc(-50% + ${pointX}px), calc(-50% + ${pointY}px)) scale(${scale})`;
+    }
+
+    // Закрытие и полный сброс параметров
+    function closeOverlay() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+        scale = 1;
+        pointX = 0; pointY = 0;
+    }
+
+    // Клик по любой картинке в тексте — открываем во весь экран
+    document.querySelectorAll('img:not(.img-overlay img)').forEach(img => {
+        img.addEventListener('click', () => {
+            viewImg.src = img.src;
+            overlay.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Запрещаем скролл самого сайта
+            scale = 1;
+            pointX = 0; pointY = 0;
+            updateTransform();
+        });
+    });
+
+    // Зум колесиком мыши
+    overlay.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const zoomSpeed = 0.12;
+        
+        // Считаем новый масштаб (ограничение от 0.5x до 8x)
+        const nextScale = scale + (e.deltaY < 0 ? zoomSpeed : -zoomSpeed);
+        if (nextScale >= 0.5 && nextScale <= 8) {
+            scale = nextScale;
+            updateTransform();
+        }
+    }, { passive: false });
+
+    // Начало перетаскивания мышкой
+    viewImg.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        isDragging = true;
+        startX = e.clientX - pointX;
+        startY = e.clientY - pointY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        pointX = e.clientX - startX;
+        pointY = e.clientY - startY;
+        updateTransform();
+    });
+
+    window.addEventListener('mouseup', () => { isDragging = false; });
+
+    // Клик по фону закрывает окно (но не при клике по самой картинке)
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeOverlay();
+    });
+
+    // Надежное закрытие по кнопке ESC
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && overlay.style.display === 'block') {
+            closeOverlay();
+        }
+    });
+});
+</script>
+</body>
+</html>
